@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Brigada">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" href="icon.png">
+
+<link rel="manifest" href="manifest.json">
+<meta name="robots" content="noindex, nofollow">
+
+<title>Brigada Móvil</title>
+
+<style>
+body {
+  margin:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:100vh;
+
+  background:url('icon.png') no-repeat center center fixed;
+  background-size:cover;
+}
+
+/* OSCURECER FONDO */
+body::before {
+  content:"";
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.65);
+}
+
+/* CONTENIDO */
+.wrapper {
+  position:relative;
+  z-index:1;
+  width:90%;
+  max-width:400px;
+}
+
+/* BOTONES */
+.btn {
+  display:block;
+  padding:20px;
+  margin:15px 0;
+  border-radius:12px;
+  text-decoration:none;
+  color:white;
+  font-size:20px;
+  text-align:center;
+  background:rgba(0,0,0,0.6);
+  border:1px solid rgba(255,255,255,0.2);
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="wrapper">
+
+<a class="btn" href="https://id.eur.evidence.com/login?domain=segpubcat.eur.evidence.com&redirect_uri=%2Foauth%2Fauthorize%3Fstate%3DMTc3Mzg2MTk0NTU0Ni1xSTlMSWhaamxBQlo1OVhERFhVdUl3PT0%253D%26domain%3Dsegpubcat.eur.evidence.com%26redirect_uri%3Dhttps%253A%252F%252Fsegpubcat.eur.evidence.com%252Fapi%252Fv2%252Foauth2%252Fcallback%26client_id%3Dd420e205-7441-48c7-a629-68d6ebee5ca6%26response_type%3Dcode&client_id=d420e205-7441-48c7-a629-68d6ebee5ca6" target="_blank">
+AXON
+</a>
+
+<a class="btn" href="https://forms.office.com/e/HutLxU4Xqr" target="_blank">
+BALÍSTICO
+</a>
+
+<a class="btn" href="https://forms.office.com/Pages/ResponsePage.aspx?id=5IJ0qb4dJUyik3gOc3n0niAcJ-nHf9hBsq5xpGjE_kNUQlJQSldCMDEzNjFZTFo5OFdYVjBHNTRVUCQlQCN0PWcu&origin=QRCode" target="_blank">
+ARMAMENT
+</a>
+
+</div>
+
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js');
+}
+</script>
+
+</body>
+</html>
