@@ -1,4 +1,4 @@
-const CACHE_NAME = "app-v1";
+const CACHE_NAME = "app-v2";
 
 self.addEventListener("install", e => {
   e.waitUntil(
@@ -10,6 +10,17 @@ self.addEventListener("install", e => {
       ]);
     })
   );
+});
+
+self.addEventListener("activate", e => {
+  e.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(
+        keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
+      )
+    )
+  );
+  self.clients.claim();
 });
 
 self.addEventListener("fetch", e => {
