@@ -73,10 +73,37 @@ body::before {
   background: linear-gradient(135deg, rgba(127,255,107,0.18), rgba(0,0,0,0.6));
   text-shadow: 0 0 10px rgba(127,255,107,0.7);
 }
+
+/* PULL TO REFRESH */
+html, body { overscroll-behavior-y: none; }
+.wrapper { transition: transform .2s ease; }
+.wrapper.arrastrando { transition: none; }
+#ptr {
+  position:fixed;
+  top:calc(env(safe-area-inset-top, 0px) + 14px);
+  left:0; right:0;
+  z-index:2;
+  text-align:center;
+  color:white;
+  font:15px -apple-system, Helvetica, Arial, sans-serif;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .2s ease;
+}
+#ptr.visible { opacity:1; }
+#ptr span {
+  display:inline-block;
+  padding:8px 16px;
+  border-radius:20px;
+  background:rgba(0,0,0,0.6);
+  border:1px solid rgba(255,255,255,0.2);
+}
 </style>
 </head>
 
 <body>
+
+<div id="ptr"><span id="ptr-txt">↓ Desliza para actualizar</span></div>
 
 <div class="wrapper">
 
@@ -84,7 +111,7 @@ body::before {
 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:10px"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>AXON
 </a>
 
-<a class="btn btn-balistic" href="https://forms.office.com/e/HutLxU4Xqr" target="_blank">
+<a class="btn btn-balistic" href="https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=5IJ0qb4dJUyik3gOc3n0niAcJ-nHf9hBsq5xpGjE_kNUNVJIU0dQWFBIVlFZS1RPWk5DUDJMTk03UiQlQCNjPTEkJUAjdD1n&amp;origin=QRCode" target="_blank">
 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:10px"><path d="M12 2C7 2 3 6.5 3 11v1h18v-1c0-4.5-4-9-9-9z"/><path d="M3 12c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2"/><path d="M5 14v1a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1"/></svg>BALISTIC
 </a>
 
@@ -98,6 +125,90 @@ body::before {
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('service-worker.js');
 }
+
+/* ---- Deslizar hacia abajo para actualizar ---- */
+(function () {
+  const wrapper = document.querySelector('.wrapper');
+  const ptr = document.getElementById('ptr');
+  const txt = document.getElementById('ptr-txt');
+  const UMBRAL = 60;      // distancia (ya amortiguada) para disparar la actualización
+  const MAX = 110;
+
+  let inicioY = 0, siguiendo = false, arrastrando = false, dist = 0, actualizando = false;
+
+  function reset() {
+    arrastrando = false; siguiendo = false; dist = 0;
+    wrapper.classList.remove('arrastrando');
+    wrapper.style.transform = '';
+    ptr.classList.remove('visible');
+  }
+
+  async function actualizar() {
+    actualizando = true;
+    txt.textContent = '⟳ Actualizando...';
+    ptr.classList.add('visible');
+    wrapper.style.transform = 'translateY(40px)';
+    try {
+      if ('serviceWorker' in navigator) {
+        const reg = await navigator.serviceWorker.getRegistration();
+        if (reg) {
+          await reg.update();
+          const nuevo = reg.installing || reg.waiting;
+          if (nuevo && nuevo.state !== 'activated') {
+            await Promise.race([
+              new Promise(res => nuevo.addEventListener('statechange', () => {
+                if (nuevo.state === 'activated') res();
+              })),
+              new Promise(res => setTimeout(res, 3000))
+            ]);
+          }
+        }
+      }
+      if (window.caches) {
+        const claves = await caches.keys();
+        await Promise.all(claves.map(k => caches.delete(k)));
+      }
+    } catch (err) { /* si falla (p. ej. sin conexión) se recarga igualmente */ }
+    window.location.reload();
+  }
+
+  document.addEventListener('touchstart', e => {
+    if (actualizando || e.touches.length !== 1) return;
+    if (window.scrollY <= 0) {
+      inicioY = e.touches[0].clientY;
+      siguiendo = true;
+    }
+  }, { passive: true });
+
+  document.addEventListener('touchmove', e => {
+    if (!siguiendo || actualizando) return;
+    const dy = e.touches[0].clientY - inicioY;
+    if (dy > 10 && window.scrollY <= 0) {
+      arrastrando = true;
+      e.preventDefault();
+      dist = Math.min((dy - 10) * 0.5, MAX);
+      wrapper.classList.add('arrastrando');
+      wrapper.style.transform = 'translateY(' + (dist * 0.6) + 'px)';
+      ptr.classList.add('visible');
+      txt.textContent = dist >= UMBRAL ? '↑ Suelta para actualizar' : '↓ Desliza para actualizar';
+    } else if (dy <= 0 && arrastrando) {
+      reset();
+    }
+  }, { passive: false });
+
+  document.addEventListener('touchend', () => {
+    if (actualizando) return;
+    if (arrastrando && dist >= UMBRAL) {
+      wrapper.classList.remove('arrastrando');
+      actualizar();
+    } else {
+      reset();
+    }
+    siguiendo = false;
+  });
+
+  document.addEventListener('touchcancel', () => { if (!actualizando) reset(); });
+})();
 
 let tiempoOculto = null;
 
