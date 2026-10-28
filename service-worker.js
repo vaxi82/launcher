@@ -1,4 +1,4 @@
-const CACHE_NAME = "app-v4"; // Subir el número cuando se quiera forzar una limpieza de caché
+const CACHE_NAME = "app-v5"; // Subir el número cuando se quiera forzar una limpieza de caché
 
 const ARCHIVOS = [
   "/launcher/",
